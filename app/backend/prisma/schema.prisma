@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CatalogItem {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  name             String
+  unit             String
+  defaultLaborRate Decimal  @default(0)
+  defaultMaterial  Decimal  @default(0)
+  createdAt        DateTime @default(now())
+}
+
+model Estimate {
+  id        String        @id @default(cuid())
+  title     String
+  scope     String?
+  status    String        @default("DRAFT") // DRAFT/ISSUED/APPROVED/REJECTED
+  createdAt DateTime      @default(now())
+  items     EstimateItem[]
+}
+
+model EstimateItem {
+  id          String   @id @default(cuid())
+  estimateId  String
+  estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  catalogCode String
+  description String
+  qty         Decimal  @default(1)
+  unit        String
+  laborRate   Decimal  @default(0)
+  material    Decimal  @default(0)
+  allowance   Decimal  @default(0)
+  overheadPct Decimal  @default(10)
+  markupPct   Decimal  @default(15)
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  createdAt DateTime @default(now())
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  title     String
+  startDate DateTime
+  endDate   DateTime
+  location  String?
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id])
+  createdAt DateTime @default(now())
+}
